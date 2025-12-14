@@ -1,5 +1,6 @@
 """
 Análisis de Diseño en Bloques Completamente al Azar (DBCA) para datos de Quinua
+Diseño Optimizado: 5 Réplicas, 60 Unidades Experimentales
 Autor: Análisis Experimental
 Fecha: 2025-12-10
 """
@@ -25,15 +26,20 @@ sns.set_palette("husl")
 
 print("="*80)
 print("ANÁLISIS DE DISEÑO EN BLOQUES COMPLETAMENTE AL AZAR (DBCA)")
-print("Dataset: Quinua Simulada")
+print("Dataset: Quinua con 5 Réplicas (60 Unidades Experimentales)")
 print("="*80)
 
-# Cargar datos procesados (español)
+# Cargar datos (priorizar archivo de 5 réplicas)
 try:
-    df = pd.read_csv('quinua_simulada_es.csv')
+    df = pd.read_csv('quinua_5replicas.csv')
+    print("\n✓ Datos cargados: quinua_5replicas.csv (5 réplicas, 60 UE)")
 except FileNotFoundError:
-    print("Advertencia: No se encontró 'quinua_simulada_es.csv', intentando cargar original.")
-    df = pd.read_csv('quinua_simulada.csv')
+    try:
+        df = pd.read_csv('quinua_simulada_es.csv')
+        print("\n✓ Datos cargados: quinua_simulada_es.csv")
+    except FileNotFoundError:
+        df = pd.read_csv('quinua_simulada.csv')
+        print("\n✓ Datos cargados: quinua_simulada.csv")
 
 # Asegurar tipos de datos para evitar errores por mezcla de str/float
 cols_cat = ['Bloque', 'Variedad', 'Fertilizante', 'Riego']
@@ -214,10 +220,247 @@ print(f"  p-valor: {p_interaccion:.4f}")
 print(f"  Conclusión: {'Modelo aditivo apropiado (p > 0.05)' if p_interaccion > 0.05 else 'Posible falta de aditividad (p < 0.05)'}")
 
 # ============================================================================
-# 8. VISUALIZACIONES
+# 8. BOXPLOTS DETALLADOS
 # ============================================================================
 
-print("\n\n8. GENERANDO VISUALIZACIONES...")
+print("\n\n8. GENERANDO BOXPLOTS DETALLADOS...")
+print("-"*80)
+
+# Crear figura para boxplots
+fig_boxplots = plt.figure(figsize=(20, 16))
+
+# Función auxiliar para agregar medias a boxplots
+def add_means_to_boxplot(ax, data, positions):
+    """Agrega puntos de media a un boxplot"""
+    means = [np.mean(d) for d in data]
+    ax.plot(positions, means, 'D', color='red', markersize=8, 
+            markeredgecolor='darkred', markeredgewidth=1.5, 
+            label='Media', zorder=3)
+
+# 8.1 Boxplot: Rendimiento por Bloque
+ax1 = plt.subplot(3, 4, 1)
+bloques_orden = sorted(df['Bloque'].unique())
+data_bloques = [df[df['Bloque'] == b]['Rendimiento_kg'].values for b in bloques_orden]
+bp1 = ax1.boxplot(data_bloques, labels=bloques_orden, patch_artist=True)
+for patch in bp1['boxes']:
+    patch.set_facecolor('lightblue')
+    patch.set_alpha(0.7)
+add_means_to_boxplot(ax1, data_bloques, range(1, len(bloques_orden)+1))
+ax1.set_title('Rendimiento por Bloque', fontsize=12, fontweight='bold')
+ax1.set_xlabel('Bloque')
+ax1.set_ylabel('Rendimiento (kg)')
+ax1.grid(True, alpha=0.3)
+ax1.legend()
+
+# 8.2 Boxplot: Rendimiento por Variedad
+ax2 = plt.subplot(3, 4, 2)
+variedades_orden = sorted(df['Variedad'].unique())
+data_variedades = [df[df['Variedad'] == v]['Rendimiento_kg'].values for v in variedades_orden]
+bp2 = ax2.boxplot(data_variedades, labels=variedades_orden, patch_artist=True)
+for patch in bp2['boxes']:
+    patch.set_facecolor('lightgreen')
+    patch.set_alpha(0.7)
+add_means_to_boxplot(ax2, data_variedades, range(1, len(variedades_orden)+1))
+ax2.set_title('Rendimiento por Variedad', fontsize=12, fontweight='bold')
+ax2.set_xlabel('Variedad')
+ax2.set_ylabel('Rendimiento (kg)')
+ax2.grid(True, alpha=0.3)
+ax2.legend()
+
+# 8.3 Boxplot: Rendimiento por Fertilizante
+ax3 = plt.subplot(3, 4, 3)
+fertilizantes_orden = sorted(df['Fertilizante'].unique())
+data_fertilizantes = [df[df['Fertilizante'] == f]['Rendimiento_kg'].values for f in fertilizantes_orden]
+bp3 = ax3.boxplot(data_fertilizantes, labels=fertilizantes_orden, patch_artist=True)
+for patch in bp3['boxes']:
+    patch.set_facecolor('lightyellow')
+    patch.set_alpha(0.7)
+add_means_to_boxplot(ax3, data_fertilizantes, range(1, len(fertilizantes_orden)+1))
+ax3.set_title('Rendimiento por Fertilizante', fontsize=12, fontweight='bold')
+ax3.set_xlabel('Fertilizante')
+ax3.set_ylabel('Rendimiento (kg)')
+ax3.grid(True, alpha=0.3)
+ax3.legend()
+
+# 8.4 Boxplot: Rendimiento por Riego
+ax4 = plt.subplot(3, 4, 4)
+riegos_orden = sorted(df['Riego'].unique())
+data_riegos = [df[df['Riego'] == r]['Rendimiento_kg'].values for r in riegos_orden]
+bp4 = ax4.boxplot(data_riegos, labels=riegos_orden, patch_artist=True)
+for patch in bp4['boxes']:
+    patch.set_facecolor('lightcoral')
+    patch.set_alpha(0.7)
+add_means_to_boxplot(ax4, data_riegos, range(1, len(riegos_orden)+1))
+ax4.set_title('Rendimiento por Riego', fontsize=12, fontweight='bold')
+ax4.set_xlabel('Riego')
+ax4.set_ylabel('Rendimiento (kg)')
+ax4.grid(True, alpha=0.3)
+ax4.legend()
+
+# 8.5 Boxplot: Variedad × Bloque
+ax5 = plt.subplot(3, 4, 5)
+df_grouped = df.groupby(['Variedad', 'Bloque'])['Rendimiento_kg'].apply(list).reset_index()
+positions = []
+data_to_plot = []
+labels = []
+pos = 1
+for var in variedades_orden:
+    for bloque in bloques_orden:
+        subset = df[(df['Variedad'] == var) & (df['Bloque'] == bloque)]['Rendimiento_kg'].values
+        if len(subset) > 0:
+            data_to_plot.append(subset)
+            positions.append(pos)
+            labels.append(f'{var}\n{bloque}')
+            pos += 1
+bp5 = ax5.boxplot(data_to_plot, positions=positions, labels=labels, patch_artist=True)
+for i, patch in enumerate(bp5['boxes']):
+    patch.set_facecolor(['lightblue', 'lightgreen', 'lightyellow'][i % 3])
+    patch.set_alpha(0.7)
+ax5.set_title('Interacción Variedad × Bloque', fontsize=12, fontweight='bold')
+ax5.set_xlabel('Variedad - Bloque')
+ax5.set_ylabel('Rendimiento (kg)')
+ax5.tick_params(axis='x', rotation=45, labelsize=8)
+ax5.grid(True, alpha=0.3)
+
+# 8.6 Boxplot: Fertilizante × Bloque
+ax6 = plt.subplot(3, 4, 6)
+data_to_plot = []
+labels = []
+for fert in fertilizantes_orden:
+    for bloque in bloques_orden:
+        subset = df[(df['Fertilizante'] == fert) & (df['Bloque'] == bloque)]['Rendimiento_kg'].values
+        if len(subset) > 0:
+            data_to_plot.append(subset)
+            labels.append(f'{fert}\n{bloque}')
+bp6 = ax6.boxplot(data_to_plot, labels=labels, patch_artist=True)
+for i, patch in enumerate(bp6['boxes']):
+    patch.set_facecolor(['lightblue', 'lightgreen', 'lightyellow'][i % 3])
+    patch.set_alpha(0.7)
+ax6.set_title('Interacción Fertilizante × Bloque', fontsize=12, fontweight='bold')
+ax6.set_xlabel('Fertilizante - Bloque')
+ax6.set_ylabel('Rendimiento (kg)')
+ax6.tick_params(axis='x', rotation=45, labelsize=8)
+ax6.grid(True, alpha=0.3)
+
+# 8.7 Boxplot: Riego × Bloque
+ax7 = plt.subplot(3, 4, 7)
+data_to_plot = []
+labels = []
+for riego in riegos_orden:
+    for bloque in bloques_orden:
+        subset = df[(df['Riego'] == riego) & (df['Bloque'] == bloque)]['Rendimiento_kg'].values
+        if len(subset) > 0:
+            data_to_plot.append(subset)
+            labels.append(f'{riego}\n{bloque}')
+bp7 = ax7.boxplot(data_to_plot, labels=labels, patch_artist=True)
+for i, patch in enumerate(bp7['boxes']):
+    patch.set_facecolor(['lightblue', 'lightgreen', 'lightyellow'][i % 3])
+    patch.set_alpha(0.7)
+ax7.set_title('Interacción Riego × Bloque', fontsize=12, fontweight='bold')
+ax7.set_xlabel('Riego - Bloque')
+ax7.set_ylabel('Rendimiento (kg)')
+ax7.tick_params(axis='x', rotation=45, labelsize=8)
+ax7.grid(True, alpha=0.3)
+
+# 8.8 Boxplot: Variedad × Fertilizante
+ax8 = plt.subplot(3, 4, 8)
+data_to_plot = []
+labels = []
+for var in variedades_orden:
+    for fert in fertilizantes_orden:
+        subset = df[(df['Variedad'] == var) & (df['Fertilizante'] == fert)]['Rendimiento_kg'].values
+        if len(subset) > 0:
+            data_to_plot.append(subset)
+            labels.append(f'{var}-{fert}')
+bp8 = ax8.boxplot(data_to_plot, labels=labels, patch_artist=True)
+for i, patch in enumerate(bp8['boxes']):
+    patch.set_facecolor(['lightcoral', 'lightblue', 'lightgreen'][i % 3])
+    patch.set_alpha(0.7)
+ax8.set_title('Interacción Variedad × Fertilizante', fontsize=12, fontweight='bold')
+ax8.set_xlabel('Variedad - Fertilizante')
+ax8.set_ylabel('Rendimiento (kg)')
+ax8.tick_params(axis='x', rotation=45, labelsize=8)
+ax8.grid(True, alpha=0.3)
+
+# 8.9 Boxplot: Variedad × Riego
+ax9 = plt.subplot(3, 4, 9)
+data_to_plot = []
+labels = []
+for var in variedades_orden:
+    for riego in riegos_orden:
+        subset = df[(df['Variedad'] == var) & (df['Riego'] == riego)]['Rendimiento_kg'].values
+        if len(subset) > 0:
+            data_to_plot.append(subset)
+            labels.append(f'{var}-{riego}')
+bp9 = ax9.boxplot(data_to_plot, labels=labels, patch_artist=True)
+for i, patch in enumerate(bp9['boxes']):
+    patch.set_facecolor(['lightblue', 'lightgreen', 'lightyellow', 'lightcoral'][i % 4])
+    patch.set_alpha(0.7)
+ax9.set_title('Interacción Variedad × Riego', fontsize=12, fontweight='bold')
+ax9.set_xlabel('Variedad - Riego')
+ax9.set_ylabel('Rendimiento (kg)')
+ax9.tick_params(axis='x', rotation=45, labelsize=8)
+ax9.grid(True, alpha=0.3)
+
+# 8.10 Boxplot: Fertilizante × Riego
+ax10 = plt.subplot(3, 4, 10)
+data_to_plot = []
+labels = []
+for fert in fertilizantes_orden:
+    for riego in riegos_orden:
+        subset = df[(df['Fertilizante'] == fert) & (df['Riego'] == riego)]['Rendimiento_kg'].values
+        if len(subset) > 0:
+            data_to_plot.append(subset)
+            labels.append(f'{fert}-{riego}')
+bp10 = ax10.boxplot(data_to_plot, labels=labels, patch_artist=True)
+for i, patch in enumerate(bp10['boxes']):
+    patch.set_facecolor(['lightblue', 'lightgreen', 'lightyellow', 'lightcoral', 'lightpink', 'lightgray'][i % 6])
+    patch.set_alpha(0.7)
+ax10.set_title('Interacción Fertilizante × Riego', fontsize=12, fontweight='bold')
+ax10.set_xlabel('Fertilizante - Riego')
+ax10.set_ylabel('Rendimiento (kg)')
+ax10.tick_params(axis='x', rotation=45, labelsize=8)
+ax10.grid(True, alpha=0.3)
+
+# 8.11 Boxplot: Todos los Tratamientos
+ax11 = plt.subplot(3, 4, 11)
+tratamientos_orden = sorted(df['Tratamiento'].unique())
+data_tratamientos = [df[df['Tratamiento'] == t]['Rendimiento_kg'].values for t in tratamientos_orden]
+bp11 = ax11.boxplot(data_tratamientos, labels=tratamientos_orden, patch_artist=True)
+colors = plt.cm.Set3(np.linspace(0, 1, len(tratamientos_orden)))
+for i, patch in enumerate(bp11['boxes']):
+    patch.set_facecolor(colors[i])
+    patch.set_alpha(0.7)
+ax11.set_title('Rendimiento por Tratamiento Completo', fontsize=12, fontweight='bold')
+ax11.set_xlabel('Tratamiento')
+ax11.set_ylabel('Rendimiento (kg)')
+ax11.tick_params(axis='x', rotation=90, labelsize=7)
+ax11.grid(True, alpha=0.3)
+
+# 8.12 Violin Plot: Distribución por Bloque
+ax12 = plt.subplot(3, 4, 12)
+parts = ax12.violinplot([df[df['Bloque'] == b]['Rendimiento_kg'].values for b in bloques_orden],
+                        positions=range(1, len(bloques_orden)+1),
+                        showmeans=True, showmedians=True)
+for i, pc in enumerate(parts['bodies']):
+    pc.set_facecolor(['lightblue', 'lightgreen', 'lightyellow'][i % 3])
+    pc.set_alpha(0.7)
+ax12.set_xticks(range(1, len(bloques_orden)+1))
+ax12.set_xticklabels(bloques_orden)
+ax12.set_title('Distribución por Bloque (Violin Plot)', fontsize=12, fontweight='bold')
+ax12.set_xlabel('Bloque')
+ax12.set_ylabel('Rendimiento (kg)')
+ax12.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.savefig('DBCA_boxplots_python.png', dpi=300, bbox_inches='tight')
+print("✓ Boxplots guardados en: DBCA_boxplots_python.png")
+
+# ============================================================================
+# 9. VISUALIZACIONES DE DIAGNÓSTICO
+# ============================================================================
+
+print("\n\n9. GENERANDO VISUALIZACIONES DE DIAGNÓSTICO...")
 print("-"*80)
 
 # Crear figura con múltiples subplots
