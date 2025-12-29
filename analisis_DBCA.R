@@ -5,13 +5,6 @@
 # Fecha: 2025-12-10
 # ============================================================================
 
-# Cargar librerías necesarias
-if (!require(ggplot2)) install.packages("ggplot2")
-if (!require(agricolae)) install.packages("agricolae")
-if (!require(car)) install.packages("car")
-if (!require(gridExtra)) install.packages("gridExtra")
-if (!require(reshape2)) install.packages("reshape2")
-if (!require(dplyr)) install.packages("dplyr")
 
 library(ggplot2)
 library(agricolae)
@@ -32,17 +25,12 @@ cat("ANÁLISIS DE DISEÑO EN BLOQUES COMPLETAMENTE AL AZAR (DBCA)\n")
 cat("Dataset: Quinua con 5 Réplicas (60 Unidades Experimentales)\n")
 cat(rep("=", 80), "\n", sep = "")
 
-# Cargar datos (priorizar archivo de 5 réplicas)
-if (file.exists("quinua_5replicas.csv")) {
-  df <- read.csv("quinua_5replicas.csv", stringsAsFactors = FALSE)
-  cat("\n✓ Datos cargados: quinua_5replicas.csv (5 réplicas, 60 UE)\n")
-} else if (file.exists("quinua_simulada_es.csv")) {
-  df <- read.csv("quinua_simulada_es.csv", stringsAsFactors = FALSE)
-  cat("\n✓ Datos cargados: quinua_simulada_es.csv\n")
-} else {
-  df <- read.csv("quinua_simulada.csv", stringsAsFactors = FALSE)
-  cat("\n✓ Datos cargados: quinua_simulada.csv\n")
-}
+
+
+df <- read.csv("quinua_5replicas.csv", stringsAsFactors = FALSE)
+cat("\n✓ Datos cargados: quinua_5replicas.csv (5 réplicas, 60 UE)\n")
+
+
 
 # Asegurar tipos de datos correctos
 df$Bloque <- as.factor(df$Bloque)

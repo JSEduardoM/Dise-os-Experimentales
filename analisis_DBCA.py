@@ -30,16 +30,8 @@ print("Dataset: Quinua con 5 Réplicas (60 Unidades Experimentales)")
 print("="*80)
 
 # Cargar datos (priorizar archivo de 5 réplicas)
-try:
-    df = pd.read_csv('quinua_5replicas.csv')
-    print("\n✓ Datos cargados: quinua_5replicas.csv (5 réplicas, 60 UE)")
-except FileNotFoundError:
-    try:
-        df = pd.read_csv('quinua_simulada_es.csv')
-        print("\n✓ Datos cargados: quinua_simulada_es.csv")
-    except FileNotFoundError:
-        df = pd.read_csv('quinua_simulada.csv')
-        print("\n✓ Datos cargados: quinua_simulada.csv")
+df = pd.read_csv('quinua_5replicas.csv')
+print("\n✓ Datos cargados: quinua_5replicas.csv (5 réplicas, 60 UE)")
 
 # Asegurar tipos de datos para evitar errores por mezcla de str/float
 cols_cat = ['Bloque', 'Variedad', 'Fertilizante', 'Riego']
